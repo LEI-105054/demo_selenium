@@ -1,0 +1,8 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","11912","testCommunityFormSubmission()","","2025-11-28","failed","2025-11-28","","forms.FormTest","forms.FormTest","testCommunityFormSubmission"
+"","6329","testFullFormSubmission()","","2025-11-28","passed","2025-11-28","","forms.FormTest","forms.FormTest","testFullFormSubmission"
+"","12592","testJoinCommunitySuccessfully()","","2025-11-28","failed","2025-11-28","","forms.FormTest","forms.FormTest","testJoinCommunitySuccessfully"
+"","8651","testFormSubmissionWithoutCheckbox()","","2025-11-28","failed","2025-11-28","","forms.FormTest","forms.FormTest","testFormSubmissionWithoutCheckbox"
+"","11905","testFormSubmissionWithCheckbox()","","2025-11-28","failed","2025-11-28","","forms.FormTest","forms.FormTest","testFormSubmissionWithCheckbox"
+"","12702","testFormSubmission()","","2025-11-28","failed","2025-11-28","","forms.FormTest","forms.FormTest","testFormSubmission"
+"","11886","testEmailSubmission()","","2025-11-28","failed","2025-11-28","","forms.FormTest","forms.FormTest","testEmailSubmission"
