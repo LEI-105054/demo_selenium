@@ -1,4 +1,4 @@
-package iscteiul.ista.demo_selenium;
+package heroku;
 
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.WebDriver;
