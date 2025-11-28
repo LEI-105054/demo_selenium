@@ -66,6 +66,7 @@ public class MainPageTest {
         waitForPageLoad();
         acceptCookiesIfPresent();
         mainPage = new MainPage(driver);
+        mainPage.acceptCookies();
     }
 
     @AfterEach
@@ -100,7 +101,9 @@ public class MainPageTest {
     }
     
     @Test
-    public void search() {
+    public void search() throws InterruptedException {
+        // 1. Clicar na lupa
+        System.out.println("A clicar na lupa...");
         mainPage.searchButton.click();
 
         WebElement searchField = driver.findElement(By.cssSelector("[data-test-id='search-input']"));
@@ -116,6 +119,7 @@ public class MainPageTest {
     @Test
     public void toolsMenu() {
         mainPage.toolsMenu.click();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 

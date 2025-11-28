@@ -5,7 +5,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
-// page_url = https://www.jetbrains.com/
 public class MainPage {
 
     // Menu "Developer Tools"
@@ -22,6 +21,19 @@ public class MainPage {
     // CORREÇÃO: Aceita múltiplos seletores para o botão de pesquisa para garantir compatibilidade
     @FindBy(css = "button[data-test='site-header-search-action'], button[data-test='search-button'], [aria-label='Open search']")
     public WebElement searchButton;
+
+    @FindBy(xpath = "//button[contains(text(), 'Accept All')]")
+    public WebElement acceptCookiesButton;
+
+    public void acceptCookies() {
+        try {
+            if (acceptCookiesButton.isDisplayed()) {
+                acceptCookiesButton.click();
+            }
+        } catch (Exception e) {
+
+        }
+    }
 
     public MainPage(WebDriver driver) {
         PageFactory.initElements(driver, this);
