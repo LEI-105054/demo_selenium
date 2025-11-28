@@ -6,17 +6,20 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
 public class MainPage {
+
+    // Menu "Developer Tools"
+    @FindBy(xpath = "//*[@data-test-marker='Developer Tools']")
+    public WebElement toolsMenu;
+
     @FindBy(xpath = "//*[@data-test-marker='Developer Tools']")
     public WebElement seeDeveloperToolsButton;
 
-    // Seletor corrigido para evitar interceção
-    @FindBy(css = "[data-test='suggestion-link']")
+    // Botão "Find your tool"
+    @FindBy(xpath = "//*[@data-test='suggestion-action'] | //a[contains(@href, '/products/') and contains(@class, 'mainSubmenuSuggestion')]")
     public WebElement findYourToolsButton;
 
-    @FindBy(xpath = "//div[@data-test='main-menu-item' and @data-test-marker = 'Developer Tools']")
-    public WebElement toolsMenu;
-
-    @FindBy(css = "[data-test='site-header-search-action']")
+    // CORREÇÃO: Aceita múltiplos seletores para o botão de pesquisa para garantir compatibilidade
+    @FindBy(css = "button[data-test='site-header-search-action'], button[data-test='search-button'], [aria-label='Open search']")
     public WebElement searchButton;
 
     @FindBy(xpath = "//button[contains(text(), 'Accept All')]")

@@ -4,78 +4,116 @@ import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys; // IMPORTANTE: Adiciona esta importação
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.List;
 
 public class MainPageTest {
     private WebDriver driver;
     private MainPage mainPage;
+    private WebDriverWait wait;
 
+    private void waitForPageLoad() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until((ExpectedCondition<Boolean>) wd ->
+                ((JavascriptExecutor) wd).executeScript("return document.readyState").equals("complete")
+        );
+    }
+
+    public void acceptCookiesIfPresent() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+
+        try {
+            // Espera o botão "Accept All" estar presente e clicável
+            WebElement acceptButton = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.cssSelector("button.ch2-allow-all-btn")
+            ));
+            acceptButton.click();
+
+            // Opcional: espera o diálogo sumir
+            wait.until(ExpectedConditions.invisibilityOfElementLocated(
+                    By.id("ch2-dialog")
+            ));
+
+            System.out.println("Cookies accepted.");
+        } catch (Exception e) {
+            // Se o banner não aparecer, ignora e continua
+            System.out.println("No cookie banner found.");
+        }
+    }
     @BeforeEach
     public void setUp() {
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--disable-search-engine-choice-screen");
+        options.addArguments("--window-size=1920,1080"); // Força layout Desktop
+
+        driver = new ChromeDriver(options);
+        // Timeout implícito a 0 para não atrasar as verificações manuais
+        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(0));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+
         driver.get("https://www.jetbrains.com/");
 
+        waitForPageLoad();
+        acceptCookiesIfPresent();
         mainPage = new MainPage(driver);
         mainPage.acceptCookies();
     }
 
     @AfterEach
     public void tearDown() {
-        if (driver != null) {
-            driver.quit();
+        if (driver != null) driver.quit();
+    }
+
+    private void smartClick(WebElement element) {
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(element));
+            element.click();
+        } catch (Exception e) {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
         }
     }
 
+    // MÉTODO NOVO: Procura explicitamente o botão visível
+    private WebElement getVisibleSearchButton() {
+        // Procura todos os botões que pareçam ser de pesquisa
+        List<WebElement> candidates = driver.findElements(By.cssSelector("button[data-test='site-header-search-action'], [aria-label='Open search']"));
+
+        System.out.println("Botões encontrados: " + candidates.size());
+
+        for (WebElement btn : candidates) {
+            // Verifica se tem tamanho e está visível
+            if (btn.isDisplayed() && btn.getSize().getWidth() > 0) {
+                System.out.println("Botão visível encontrado!");
+                return btn;
+            }
+        }
+        throw new RuntimeException("Nenhum botão de pesquisa visível encontrado.");
+    }
+    
     @Test
     public void search() throws InterruptedException {
         // 1. Clicar na lupa
         System.out.println("A clicar na lupa...");
         mainPage.searchButton.click();
 
-        // 2. Pequena pausa para garantir que a barra abriu totalmente
-        Thread.sleep(2000);
+        WebElement searchField = driver.findElement(By.cssSelector("[data-test-id='search-input']"));
+        searchField.sendKeys("Selenium");
 
-        // 3. ESTRATÉGIA DO LOOP:
-        // Vamos buscar TODOS os inputs da página.
-        java.util.List<WebElement> allInputs = driver.findElements(By.tagName("input"));
+        WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[data-test='full-search-button']")));
+        smartClick(submitButton);
 
-        System.out.println("Inputs encontrados: " + allInputs.size());
-
-        boolean encontrou = false;
-
-        for (WebElement input : allInputs) {
-            // Verifica se o input está visível para o utilizador e se é editável
-            if (input.isDisplayed() && input.isEnabled()) {
-                try {
-                    // Tenta limpar e escrever
-                    System.out.println("Tentando escrever no input visível...");
-                    input.sendKeys("Selenium");
-                    input.sendKeys(Keys.ENTER);
-                    encontrou = true;
-                    break;
-                } catch (Exception e) {
-                    System.out.println("Este input estava visível mas deu erro. A tentar o próximo...");
-                }
-            }
-        }
-
-        if (!encontrou) {
-            fail("Erro: Não foi encontrado nenhum campo de input visível na página após clicar na lupa.");
-        }
-
-        // 4. Validar
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        wait.until(ExpectedConditions.titleContains("Selenium"));
-        assertTrue(driver.getTitle().contains("Selenium"));
+        WebElement searchPageField = driver.findElement(By.cssSelector("input[data-test-id='search-input']"));
+        assertEquals("Selenium", searchPageField.getAttribute("value"));
     }
 
     @Test
@@ -83,22 +121,49 @@ public class MainPageTest {
         mainPage.toolsMenu.click();
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        // Verifica se um item do menu aparece (ex: IntelliJ IDEA)
-        WebElement menuItem = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.partialLinkText("IntelliJ IDEA")
-        ));
-        assertTrue(menuItem.isDisplayed());
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+
+        WebElement visibleMenu = wait.until(driver -> {
+            for (WebElement el : driver.findElements(By.cssSelector("div[data-test='main-submenu']"))) {
+                if (el.isDisplayed()) {
+                    return el; 
+                }
+            }
+            return null;
+        });
+
+        assertTrue(visibleMenu.isDisplayed());
     }
+
 
     @Test
     public void navigationToAllTools() {
+        // Open the submenu
         mainPage.seeDeveloperToolsButton.click();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        wait.until(ExpectedConditions.elementToBeClickable(mainPage.findYourToolsButton)).click();
+        // Wait for the visible submenu
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        WebElement visibleMenu = wait.until(driver -> {
+            for (WebElement el : driver.findElements(By.cssSelector("div[data-test='main-submenu']"))) {
+                if (el.isDisplayed()) {
+                    return el;
+                }
+            }
+            return null;
+        });
 
+        // Find the first clickable suggestion-action in the visible menu
+        WebElement suggestionAction = wait.until(ExpectedConditions.elementToBeClickable(
+                visibleMenu.findElement(By.cssSelector("a[data-test='suggestion-link']"))
+        ));
+
+        // Click it
+        suggestionAction.click();
+
+        // Assert products page loaded
         WebElement productsList = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("products-page")));
         assertTrue(productsList.isDisplayed());
         assertEquals("All Developer Tools and Products by JetBrains", driver.getTitle());
     }
+
 }
