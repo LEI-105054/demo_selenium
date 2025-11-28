@@ -51,22 +51,14 @@ public class MainPageTest {
     }
     @BeforeEach
     public void setUp() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--remote-allow-origins=*");
-        options.addArguments("--disable-search-engine-choice-screen");
-        options.addArguments("--window-size=1920,1080"); // Força layout Desktop
-
-        driver = new ChromeDriver(options);
-        // Timeout implícito a 0 para não atrasar as verificações manuais
-        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(0));
-        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-
+        driver = new ChromeDriver();
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         driver.get("https://www.jetbrains.com/");
 
         waitForPageLoad();
         acceptCookiesIfPresent();
         mainPage = new MainPage(driver);
-        mainPage.acceptCookies();
     }
 
     @AfterEach
@@ -119,8 +111,6 @@ public class MainPageTest {
     @Test
     public void toolsMenu() {
         mainPage.toolsMenu.click();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 
         WebElement visibleMenu = wait.until(driver -> {
