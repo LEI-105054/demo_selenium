@@ -1,10 +1,10 @@
 package iscteiul.ista.demo_selenium;
 
 import org.junit.jupiter.api.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -14,10 +14,12 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.List;
 
 public class MainPageTest {
     private WebDriver driver;
     private MainPage mainPage;
+    private WebDriverWait wait;
 
     private void waitForPageLoad() {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -49,9 +51,16 @@ public class MainPageTest {
     }
     @BeforeEach
     public void setUp() {
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--disable-search-engine-choice-screen");
+        options.addArguments("--window-size=1920,1080"); // Força layout Desktop
+
+        driver = new ChromeDriver(options);
+        // Timeout implícito a 0 para não atrasar as verificações manuais
+        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(0));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+
         driver.get("https://www.jetbrains.com/");
 
         waitForPageLoad();
@@ -61,7 +70,33 @@ public class MainPageTest {
 
     @AfterEach
     public void tearDown() {
-        driver.quit();
+        if (driver != null) driver.quit();
+    }
+
+    private void smartClick(WebElement element) {
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(element));
+            element.click();
+        } catch (Exception e) {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        }
+    }
+
+    // MÉTODO NOVO: Procura explicitamente o botão visível
+    private WebElement getVisibleSearchButton() {
+        // Procura todos os botões que pareçam ser de pesquisa
+        List<WebElement> candidates = driver.findElements(By.cssSelector("button[data-test='site-header-search-action'], [aria-label='Open search']"));
+
+        System.out.println("Botões encontrados: " + candidates.size());
+
+        for (WebElement btn : candidates) {
+            // Verifica se tem tamanho e está visível
+            if (btn.isDisplayed() && btn.getSize().getWidth() > 0) {
+                System.out.println("Botão visível encontrado!");
+                return btn;
+            }
+        }
+        throw new RuntimeException("Nenhum botão de pesquisa visível encontrado.");
     }
     
     @Test
@@ -71,8 +106,8 @@ public class MainPageTest {
         WebElement searchField = driver.findElement(By.cssSelector("[data-test-id='search-input']"));
         searchField.sendKeys("Selenium");
 
-        WebElement submitButton = driver.findElement(By.cssSelector("button[data-test='full-search-button']"));
-        submitButton.click();
+        WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[data-test='full-search-button']")));
+        smartClick(submitButton);
 
         WebElement searchPageField = driver.findElement(By.cssSelector("input[data-test-id='search-input']"));
         assertEquals("Selenium", searchPageField.getAttribute("value"));
