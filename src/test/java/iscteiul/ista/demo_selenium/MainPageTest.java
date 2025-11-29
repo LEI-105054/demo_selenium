@@ -8,7 +8,8 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions; // <--- O IMPORT QUE FALTAVA
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -45,21 +46,14 @@ public class MainPageTest {
 
     @BeforeEach
     public void setUp() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--remote-allow-origins=*");
-        options.addArguments("--disable-search-engine-choice-screen");
-        options.addArguments("--window-size=1920,1080");
-
-        driver = new ChromeDriver(options);
-        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(0));
-        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-
+        driver = new ChromeDriver();
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         driver.get("https://www.jetbrains.com/");
 
         waitForPageLoad();
         acceptCookiesIfPresent();
         mainPage = new MainPage(driver);
-        // mainPage.acceptCookies(); // Comentei esta linha pois já trataste dos cookies no método acima 'acceptCookiesIfPresent'
     }
 
     @AfterEach
@@ -94,9 +88,7 @@ public class MainPageTest {
     @Test
     public void toolsMenu() {
         mainPage.toolsMenu.click();
-
-        // CORREÇÃO AQUI: Removida a dupla declaração de 'wait'
-        WebDriverWait localWait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 
         WebElement visibleMenu = localWait.until(driver -> {
             for (WebElement el : driver.findElements(By.cssSelector("div[data-test='main-submenu']"))) {
