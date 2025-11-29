@@ -8,14 +8,11 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.List;
 
 public class MainPageTest {
     private WebDriver driver;
@@ -49,6 +46,10 @@ public class MainPageTest {
         driver = new ChromeDriver();
         driver.manage().window().maximize();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
+        // Inicialização do wait global da classe
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
         driver.get("https://www.jetbrains.com/");
 
         waitForPageLoad();
@@ -61,6 +62,7 @@ public class MainPageTest {
         if (driver != null) driver.quit();
     }
 
+    // Usa o 'wait' global inicializado no setUp
     private void smartClick(WebElement element) {
         try {
             wait.until(ExpectedConditions.elementToBeClickable(element));
@@ -71,7 +73,7 @@ public class MainPageTest {
     }
 
     @Test
-    public void search() throws InterruptedException {
+    public void search() {
         System.out.println("A clicar na lupa...");
         mainPage.searchButton.click();
 
@@ -88,7 +90,9 @@ public class MainPageTest {
     @Test
     public void toolsMenu() {
         mainPage.toolsMenu.click();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+
+        // Define um wait local para esta interação específica
+        WebDriverWait localWait = new WebDriverWait(driver, Duration.ofSeconds(5));
 
         WebElement visibleMenu = localWait.until(driver -> {
             for (WebElement el : driver.findElements(By.cssSelector("div[data-test='main-submenu']"))) {
@@ -104,9 +108,11 @@ public class MainPageTest {
 
     @Test
     public void navigationToAllTools() {
+        // Assume que este botão abre o menu ou está dentro dele (dependendo da implementação do MainPage)
         mainPage.seeDeveloperToolsButton.click();
 
         WebDriverWait localWait = new WebDriverWait(driver, Duration.ofSeconds(5));
+
         WebElement visibleMenu = localWait.until(driver -> {
             for (WebElement el : driver.findElements(By.cssSelector("div[data-test='main-submenu']"))) {
                 if (el.isDisplayed()) {
